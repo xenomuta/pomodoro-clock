@@ -1,0 +1,56 @@
+<DOCTYPE html>
+<html>
+  <body>
+    <canvas></canvas>
+    <script type="text/coffeescript">
+      @img = {}
+      @canvas
+      @a = 0
+      @time = 0
+      for i in "pomodoro,light,shadow,numbers".split(/,/)
+        img[i] = new Image
+        img[i].src = "/#{i}.png"
+
+      window.onload = ->
+        @canvas = document.querySelector('canvas')
+        @canvas.width = @canvas.height = img.pomodoro.width      
+        context = @canvas.getContext("2d")
+       
+        drawClock = ->
+          context.clearRect(0, 0, @canvas.width, @canvas.height);
+          w = img.pomodoro.width / 2
+          context.translate(w, w)
+          context.drawImage(img.shadow, -w, -w)
+          @a = (@a + 1) % 360
+          angle = @a * Math.PI / 180
+          context.rotate angle
+          context.drawImage(img.pomodoro, -w, -w)
+          ###
+          # TODO: SOFT_LAYER blending with light data
+          softLightLayer(img.light, -w, -w)
+          ###
+          context.rotate -angle
+          context.globalAlpha = 0.25;
+          context.drawImage(img.light, -w, -w + 2)
+          context.globalAlpha = 1;
+          context.drawImage(img.numbers, -w, -w)
+
+          pt = 20
+          @time = (@a / 360) * 30
+          min = @time - Math.round(@time)
+          min = (Math.round(min * 100) / 100).toString()
+          try
+            min = min.match(/.*\.(.*)/)[1]
+          txt = "#{parseInt(@time)}:#{min}"
+          context.font = "#{pt}pt Georgia"
+          context.fillStyle = 'black'
+          context.fillText(txt, -((pt * txt.length) / 3.25), w / 3)
+          context.fillStyle = 'white'
+          context.fillText(txt, -((pt * txt.length) / 3.25), w / 3)
+
+          context.translate(-w, -w)
+        setInterval drawClock, 100
+    </script>
+    <script src="coffee-script.min.js"></script>
+  </body>
+</html>
